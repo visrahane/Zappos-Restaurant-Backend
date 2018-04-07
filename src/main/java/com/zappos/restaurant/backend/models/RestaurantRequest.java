@@ -5,10 +5,13 @@ package com.zappos.restaurant.backend.models;
 
 import javax.validation.constraints.NotEmpty;
 
+import io.swagger.annotations.ApiModel;
+
 /**
  * @author Vis
  *
  */
+@ApiModel
 public class RestaurantRequest {
 	private Long id;
 	@NotEmpty

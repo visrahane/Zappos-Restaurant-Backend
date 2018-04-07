@@ -18,12 +18,16 @@ import com.zappos.restaurant.backend.models.RestaurantRequest;
 import com.zappos.restaurant.backend.models.RestaurantResponse;
 import com.zappos.restaurant.backend.service.RestaurantService;
 
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+
 /**
  * @author Vis
  *
  */
 @RestController
 @RequestMapping("restaurant")
+@Api(value = "/restaurant")
 public class RestaurantController {
 
 	private static final Logger LOGGER = LogManager.getLogger(RestaurantController.class.getName());
@@ -31,7 +35,7 @@ public class RestaurantController {
 	@Autowired
 	private RestaurantService restaurantService;
 
-
+	@ApiOperation(value = "accepts an id and outputs record", response = RestaurantResponse.class)
 	@RequestMapping(value = "/{id}", method = { RequestMethod.GET }, produces = MediaType.APPLICATION_JSON_VALUE)
 	public RestaurantResponse getRestaurant(@PathVariable("id") long id) {
 		LOGGER.info("GET Restaurant Request with id-" + id);
@@ -53,6 +57,7 @@ public class RestaurantController {
 	}
 
 	// create a new restaurant entry
+	@ApiOperation(value = "accepts a record and outputs the status of save operation", response = RestaurantResponse.class)
 	@RequestMapping(value = "", method = { RequestMethod.POST }, produces = MediaType.APPLICATION_JSON_VALUE)
 	public RestaurantResponse addRestaurant(@RequestBody RestaurantRequest restaurantRequest) {
 		LOGGER.info("POST Restaurant Request with data-" + restaurantRequest);
@@ -69,6 +74,7 @@ public class RestaurantController {
 	}
 
 	// update Restaurant Details
+	@ApiOperation(value = "accepts an id and name and outputs updated record", response = RestaurantResponse.class)
 	@RequestMapping(value = "/{id}", method = { RequestMethod.PUT }, produces = MediaType.APPLICATION_JSON_VALUE)
 	public RestaurantResponse updateRestaurant(@PathVariable("id") long id, String name) {
 		LOGGER.info("Update Restaurant Request with id-" + id);
@@ -78,6 +84,7 @@ public class RestaurantController {
 		return restaurantResponse;
 	}
 
+	@ApiOperation(value = "accepts an id and deletes that record from db", response = RestaurantResponse.class)
 	@RequestMapping(value = "/{id}", method = { RequestMethod.DELETE }, produces = MediaType.APPLICATION_JSON_VALUE)
 	public RestaurantResponse removeRestaurant(@PathVariable("id") long id) {
 		RestaurantResponse restaurantResponse = new RestaurantResponse();
