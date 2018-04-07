@@ -3,6 +3,7 @@
  */
 package com.zappos.restaurant.backend.service;
 
+import com.zappos.restaurant.backend.entities.Restaurant;
 import com.zappos.restaurant.backend.models.RestaurantRequest;
 
 /**
@@ -12,6 +13,12 @@ import com.zappos.restaurant.backend.models.RestaurantRequest;
 
 public interface RestaurantService {
 
-	boolean save(RestaurantRequest restaurantRequest);
+	Restaurant save(RestaurantRequest restaurantRequest);
+
+	Restaurant getRestaurant(long id);
+
+	boolean delete(long id);
+
+	boolean updateName(long id, String name);
 
 }

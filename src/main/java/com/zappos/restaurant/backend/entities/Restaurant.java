@@ -48,12 +48,30 @@ public class Restaurant {
 	@LastModifiedDate
 	private Date updatedAt;
 
+	@Column(nullable = false, name = "active", columnDefinition = "TINYINT(1)")
+	private boolean active = true;
+
+	public boolean isActive() {
+		return active;
+	}
+
+	public void setActive(boolean active) {
+		this.active = active;
+	}
+
+	public Restaurant(long id) {
+		this.id = id;
+	}
+
+	public Restaurant() {
+	}
+
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
 		builder.append("Restaurant [id=").append(id).append(", name=").append(name).append(", addressId=")
 		.append(addressId).append(", createdAt=").append(createdAt).append(", updatedAt=").append(updatedAt)
-		.append("]");
+		.append(", active=").append(active).append("]");
 		return builder.toString();
 	}
 

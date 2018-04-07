@@ -3,6 +3,11 @@
  */
 package com.zappos.restaurant.backend.service;
 
+import java.util.NoSuchElementException;
+import java.util.Optional;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -19,6 +24,8 @@ import com.zappos.restaurant.backend.repo.RestaurantRepository;
 @Service
 public class RestaurantServiceImpl implements RestaurantService {
 
+	private static final Logger LOGGER = LogManager.getLogger(RestaurantServiceImpl.class.getName());
+
 	@Autowired
 	private RestaurantRepository restaurantRepository;
 
@@ -26,19 +33,19 @@ public class RestaurantServiceImpl implements RestaurantService {
 	private AddressRepository addressRepository;
 
 	@Override
-	public boolean save(RestaurantRequest restaurantRequest) {
-		// TODO Auto-generated method stub
-		boolean saveStatus = true;
+	public Restaurant save(RestaurantRequest restaurantRequest) {
+		Restaurant restaurant = new Restaurant();
 		try {
 			Address address = prepareAddressEntry(restaurantRequest);
 			address=addressRepository.save(address);
-			Restaurant restaurant = prepareRestaurantEntry(restaurantRequest, address);
-			restaurantRepository.save(restaurant);
+			restaurant = prepareRestaurantEntry(restaurantRequest, address);
+			restaurant.setId(restaurantRepository.save(restaurant).getId());
 		} catch (Exception ex) {
 			// problem while saving
-			saveStatus = false;
+			LOGGER.error("Exception while saving restaurant entry-" + ex);
+			restaurant.setId(-1);
 		}
-		return saveStatus;
+		return restaurant;
 	}
 
 	private Restaurant prepareRestaurantEntry(RestaurantRequest restaurantRequest, Address address) {
@@ -55,6 +62,52 @@ public class RestaurantServiceImpl implements RestaurantService {
 		address.setPin(restaurantRequest.getPin());
 		address.setState(restaurantRequest.getState());
 		return address;
+	}
+
+	@Override
+	public Restaurant getRestaurant(long id) {
+		Restaurant restaurant=new Restaurant();
+		Optional<Restaurant> optionalObj = null;
+		try{
+			optionalObj = restaurantRepository.findById(id);
+			restaurant=optionalObj.get();
+		} catch (NoSuchElementException ex) {
+			LOGGER.info("No records with id-" + id);
+		}catch(Exception ex){
+			LOGGER.error("Exception while fetching records with id-" + id + ex);
+		}
+		return restaurant;
+	}
+
+	@Override
+	public boolean updateName(long id, String name) {
+		boolean updateStatus = true;
+		Restaurant restaurant = getRestaurant(id);
+		if (restaurant.getName() != null) {
+			restaurant.setName(name);
+			try {
+				restaurantRepository.save(restaurant);
+			} catch (Exception ex) {
+				updateStatus = false;
+			}
+		}
+		return updateStatus;
+
+	}
+
+	@Override
+	public boolean delete(long id) {
+		boolean deleteStatus = true;
+		Restaurant restaurant = getRestaurant(id);
+		if (restaurant.getName() != null) {
+			restaurant.setActive(false);
+			try {
+				restaurantRepository.save(restaurant);
+			} catch (Exception ex) {
+				deleteStatus = false;
+			}
+		}
+		return deleteStatus;
 	}
 
 }
