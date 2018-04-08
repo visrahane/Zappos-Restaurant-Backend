@@ -1,16 +1,31 @@
 package com.zappos.restaurant.backend;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
+import org.springframework.data.redis.core.RedisTemplate;
 
-@RunWith(SpringRunner.class)
-@SpringBootTest
+@Configuration
+@EnableAutoConfiguration
+@ComponentScan(basePackages = "com.zappos")
 public class ApplicationTests {
 
-	@Test
-	public void contextLoads() {
+	public static void main(String[] args) {
+		SpringApplication.run(ApplicationTests.class, args);
 	}
 
+	@Bean
+	JedisConnectionFactory jedisConnectionFactory() {
+		return new JedisConnectionFactory();
+	}
+
+	@Bean
+	public RedisTemplate<String, Object> redisTemplate() {
+		final RedisTemplate<String, Object> template = new RedisTemplate<String, Object>();
+		template.setConnectionFactory(jedisConnectionFactory());
+		return template;
+	}
 }
