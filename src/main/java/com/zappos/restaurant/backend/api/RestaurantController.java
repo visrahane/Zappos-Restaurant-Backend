@@ -40,7 +40,7 @@ public class RestaurantController {
 	public RestaurantResponse getRestaurant(@PathVariable("id") long id) {
 		LOGGER.info("GET Restaurant Request with id-" + id);
 		RestaurantResponse restaurantResponse = new RestaurantResponse();
-		// getUser from Db
+		// getUser from Storage
 		Restaurant restaurant = restaurantService.getRestaurant(id);
 		prepareGetResponse(restaurantResponse, restaurant);
 		LOGGER.info("GET Restaurant Response with id-" + id + " " + restaurant);
@@ -49,7 +49,7 @@ public class RestaurantController {
 
 	private void prepareGetResponse(RestaurantResponse restaurantResponse, Restaurant restaurant) {
 		restaurantResponse.setRestaurant(restaurant);
-		if (restaurant.getName() == null) {
+		if (restaurant == null) {
 			restaurantResponse.setMessage("failure");
 		} else {
 			restaurantResponse.setMessage("success");

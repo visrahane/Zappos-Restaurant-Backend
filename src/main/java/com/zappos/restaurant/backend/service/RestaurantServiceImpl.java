@@ -5,10 +5,13 @@ package com.zappos.restaurant.backend.service;
 
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import com.zappos.restaurant.backend.entities.Address;
@@ -31,6 +34,12 @@ public class RestaurantServiceImpl implements RestaurantService {
 
 	@Autowired
 	private AddressRepository addressRepository;
+
+	@Autowired
+	private RedisTemplate<String, Object> redisTemplate;
+
+	@Value("${redis.expiry.time}")
+	private int expiryTime;
 
 	@Override
 	public Restaurant save(RestaurantRequest restaurantRequest) {
@@ -66,15 +75,45 @@ public class RestaurantServiceImpl implements RestaurantService {
 
 	@Override
 	public Restaurant getRestaurant(long id) {
-		Restaurant restaurant=new Restaurant();
-		Optional<Restaurant> optionalObj = null;
-		try{
-			optionalObj = restaurantRepository.findById(id);
-			restaurant=optionalObj.get();
-		} catch (NoSuchElementException ex) {
-			LOGGER.info("No records with id-" + id);
-		}catch(Exception ex){
-			LOGGER.error("Exception while fetching records with id-" + id + ex);
+		// check in cache. if yes, return else go for db
+		Restaurant restaurant = null;
+		restaurant = getFromCache(id);
+		if (!entryFound(restaurant)) {
+			Optional<Restaurant> optionalObj = null;
+			try {
+				optionalObj = restaurantRepository.findById(id);
+				restaurant = optionalObj.get();
+				if (entryFound(restaurant)) {
+					persistToCache(restaurant);
+				}
+			} catch (NoSuchElementException ex) {
+				LOGGER.info("No records with id-" + id);
+			} catch (Exception ex) {
+				LOGGER.error("Exception while fetching records with id-" + id + ex);
+			}
+		}
+		return restaurant;
+	}
+
+	private void persistToCache(Restaurant restaurant) {
+		try {
+			redisTemplate.opsForValue().set(Long.toString(restaurant.getId()), restaurant, expiryTime,
+					TimeUnit.DAYS);
+		} catch (final Exception ex) {
+			LOGGER.error("Exception while persisting restaurant to redis-" + ex);
+		}
+	}
+
+	private boolean entryFound(Restaurant restaurant) {
+		return restaurant != null ? true : false;
+	}
+
+	private Restaurant getFromCache(long id) {
+		Restaurant restaurant = null;
+		try {
+			restaurant = (Restaurant) redisTemplate.opsForValue().get(Long.toString(id));
+		} catch (final Exception ex) {
+			LOGGER.error("Exception while fetching restaurant from redis-" + ex);
 		}
 		return restaurant;
 	}
@@ -83,7 +122,7 @@ public class RestaurantServiceImpl implements RestaurantService {
 	public boolean updateName(long id, String name) {
 		boolean updateStatus = true;
 		Restaurant restaurant = getRestaurant(id);
-		if (restaurant.getName() != null) {
+		if (restaurant != null) {
 			restaurant.setName(name);
 			try {
 				restaurantRepository.save(restaurant);
@@ -99,7 +138,7 @@ public class RestaurantServiceImpl implements RestaurantService {
 	public boolean delete(long id) {
 		boolean deleteStatus = true;
 		Restaurant restaurant = getRestaurant(id);
-		if (restaurant.getName() != null) {
+		if (restaurant != null) {
 			restaurant.setActive(false);
 			try {
 				restaurantRepository.save(restaurant);
