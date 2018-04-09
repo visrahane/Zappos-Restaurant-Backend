@@ -5,7 +5,7 @@
 
 	<groupId>com.example</groupId>
 	<artifactId>Zappos-Restaurant-Backend</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>0.0.1</version>
 	<packaging>jar</packaging>
 
 	<name>Zappos-Restaurant-Backend</name>

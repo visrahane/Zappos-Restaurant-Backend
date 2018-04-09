@@ -120,14 +120,15 @@ public class RestaurantServiceImpl implements RestaurantService {
 
 	@Override
 	public boolean updateName(long id, String name) {
-		boolean updateStatus = true;
+		boolean updateStatus = false;
 		Restaurant restaurant = getRestaurant(id);
 		if (restaurant != null) {
 			restaurant.setName(name);
 			try {
 				restaurantRepository.save(restaurant);
+				updateStatus = true;
 			} catch (Exception ex) {
-				updateStatus = false;
+				LOGGER.error("Exception while updating restaurant data-" + ex);
 			}
 		}
 		return updateStatus;
@@ -136,14 +137,15 @@ public class RestaurantServiceImpl implements RestaurantService {
 
 	@Override
 	public boolean delete(long id) {
-		boolean deleteStatus = true;
+		boolean deleteStatus = false;
 		Restaurant restaurant = getRestaurant(id);
 		if (restaurant != null) {
 			restaurant.setActive(false);
 			try {
 				restaurantRepository.save(restaurant);
+				deleteStatus = true;
 			} catch (Exception ex) {
-				deleteStatus = false;
+				LOGGER.error("Exception while deleting restaurant data-" + ex);
 			}
 		}
 		return deleteStatus;
